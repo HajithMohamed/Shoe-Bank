@@ -20,6 +20,10 @@ export const registerUser = createAsyncThunk(
         formData,
         { withCredentials: true }
       );
+
+      const userId = response.data.data.userId; // Extract userId
+      localStorage.setItem("userId", userId);  // Store userId for OTP verification
+
       toast.success("Registration successful!");
       return response.data;
     } catch (error) {
@@ -29,25 +33,26 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+
 // **OTP Verification Async Thunk**
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
-  async (otp, { rejectWithValue }) => {
+  async ({ userId, otp }, { rejectWithValue }) => {
     try {
-      const otpValue = otp.join("");
       const response = await axios.post(
         "http://localhost:8000/api/auth/otp-verify",
-        { otp: otpValue },
+        { userId, otp }, 
         { withCredentials: true }
       );
       toast.success("Verification successful!");
       return response.data.data.user;
     } catch (error) {
-      toast.error(error.response?.data || "Verification failed. Please try again.");
-      return rejectWithValue(error.response?.data || "Verification failed");
+      toast.error(error.response?.data?.message || "Verification failed.");
+      return rejectWithValue(error.response?.data?.message || "Verification failed.");
     }
   }
 );
+
 
 // **Auth Slice**
 const authSlice = createSlice({

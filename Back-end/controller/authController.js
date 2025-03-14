@@ -39,7 +39,6 @@ const createSendToken = (user, statusCode, res, message) => {
 
 const registerUser = catchAsync(async (req, res, next) => {
     const { userName, email, password, confirmPassword } = req.body;
-    console.log(userName);
     
     if (!userName) {
         return next(new AppError("Username is required", 400));
@@ -54,16 +53,17 @@ const registerUser = catchAsync(async (req, res, next) => {
     if (checkExistingUser) return next(new AppError("User already exists", 400));
 
     const otp = generateOtp();
-    const otpExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    const otpExpires = Date.now() + 24 * 60 * 60 * 1000; 
 
     const newlyCreatedUser = new User({
-        userName,
-        email,
-        password,
+        userName: req.body.userName,
+        email: req.body.email,
+        password: req.body.password,
         otp,
         otpExpires
     });
 
+    console.log("User to be saved:", newlyCreatedUser ); // Debugging line
     await newlyCreatedUser.save();
 
     try {
@@ -95,11 +95,11 @@ const otpVerify = catchAsync(async (req, res, next) => {
 
     const user = await User.findById(userId);
 
-    if (!user || user.otp !== otp) {
+    if (!user || user.otp.toString() !== otp.toString()) {
         return next(new AppError("Invalid OTP", 400));
-    }
-
-    if (Date.now() > user.otpExpires) {
+    }    
+    
+    if (Date.now() > new Date(user.otpExpires).getTime()) {
         return next(new AppError("OTP has expired, please request a new OTP", 400));
     }
 

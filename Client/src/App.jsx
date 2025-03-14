@@ -1,3 +1,6 @@
+import React from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Route, Routes } from "react-router-dom";
 import AuthLayout from "./components/ui/auth/layout";
 import AuthLogin from "./pages/auth/login";
@@ -58,6 +61,7 @@ function App() {
           <Route path="unauth-page" element={<UnAuthPage />} />
         </Route>
       </Routes>
+      <ToastContainer />
     </div>
   );
 }

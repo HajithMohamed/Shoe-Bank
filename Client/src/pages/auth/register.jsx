@@ -1,5 +1,5 @@
 import CommonForm from "@/components/common/form";
-import { useToast } from "@/components/ui/toast"; // Correct import statement
+import { useToast } from "@/components/ui/toast"; 
 import { registerFormControls } from "@/config";
 import { registerUser } from "@/store/auth-slice";
 import { useState } from "react";
@@ -22,20 +22,20 @@ function AuthRegister() {
   function onSubmit(event) {
     event.preventDefault();
     dispatch(registerUser(formData)).then((data) => {
-      if (data?.payload?.success) {
-        toast({
-          title: data?.payload?.message,
-        });
-        navigate("/auth/verify");
-        
-      } else {
-        toast({
-          title: data?.payload?.message,
-          variant: "destructive",
-        });
-      }
+        console.log("Register Response:", data);
+
+        if (data?.payload?.success) {  
+            toast({ title: data?.payload?.message, variant: "success" }); 
+            navigate("/auth/verify");  
+        } else {
+            if (data?.payload?.includes("E11000 duplicate key error")) {
+                toast({ title: "Username already exists. Please choose a different username.", variant: "destructive" });
+            } else {
+                toast({ title: data?.payload?.message, variant: "destructive" });
+            }
+        }
     });
-  }
+}
 
   console.log(formData);
 
