@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema({
         type : Date,
         default : null,
     },
+    resetPasswordOtpVerify : {
+        type : Date,
+        default : false,
+    },
     createdAt : {
         type : Date,
         default : Date.now()

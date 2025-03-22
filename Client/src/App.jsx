@@ -19,6 +19,10 @@ import Account from "./pages/shopping-view/Account";
 import CheckAuth from "./components/common/CheckAuth";
 import UnAuthPage from "./pages/unauth-page";
 import OTPverify from "./pages/auth/verify";
+import Forgot from './pages/auth/forgot';
+import ResetPasswordVerify from './pages/auth/ResetPasswordVerify';
+import ResetPassword from './pages/auth/ResetPassword';
+
 
 
 function App() {
@@ -33,9 +37,12 @@ function App() {
       <h1>Header Component</h1>
       <Routes>
         <Route path="/auth" element={<AuthLayout />}>
-          <Route path="login" element={<AuthLogin />} />
+          <Route path="login" element={<AuthLogin />} /> 
           <Route path="register" element={<AuthRegister />} />
           <Route path="verify" element={<OTPverify/>} /> 
+          <Route path="forgot" element={<Forgot/>} /> 
+          <Route path="reset-password-verify" element={<ResetPasswordVerify/>} /> 
+          <Route path="reset-password" element={<ResetPassword/>} /> {/* Ensure this route exists */}
         </Route>
         <Route path="/admin" element={
           <CheckAuth user={user} isAuthenticated={isAuthenticated}>

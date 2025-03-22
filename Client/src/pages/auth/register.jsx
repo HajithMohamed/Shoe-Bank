@@ -62,11 +62,11 @@ function AuthRegister() {
       </div>
       <CommonForm
         formControls={registerFormControls}
-        buttonText={isLoading ? "Signing Up..." : "Sign Up"}  // ✅ Dynamic button text
+        buttonText={isLoading ? "Signing Up..." : "Sign Up"}  
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
-        isLoading={isLoading}  // ✅ Optional: Pass isLoading if CommonForm handles spinner
+        isLoading={isLoading} 
       />
     </div>
   );

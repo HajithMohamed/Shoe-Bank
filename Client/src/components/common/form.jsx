@@ -4,8 +4,9 @@ import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
 
-function CommonForm({ formControls, buttonText, formData, setFormData, onSubmit, isLoading }) {
+function CommonForm({ formControls, buttonText, formData, setFormData, onSubmit, isLoading, isLoginForm }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -106,6 +107,13 @@ function CommonForm({ formControls, buttonText, formData, setFormData, onSubmit,
             {renderInputsByComponentType(controlItem)}
           </div>
         ))}
+        {isLoginForm && ( 
+          <div className="text-right mt-2">
+            <Link to="./pages/auth/forgot" className="text-sm font-medium text-primary hover:underline">
+              Forgot Password?
+            </Link>
+          </div>
+        )}
         <Button className="mt-2 w-full" type="submit" disabled={isLoading}>
           {isLoading ? "Submitting..." : buttonText || "Submit"}
         </Button>

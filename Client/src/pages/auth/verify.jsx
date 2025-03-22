@@ -52,16 +52,20 @@ const OTPverify = () => {
     };
 
     const handleResendOtp = async () => {
-        if (!email) {
-            toast.error("Email not found. Please register again.");
-            return;
-        }
+        try {
+            if (!email) {
+                toast.error("Email not found. Please register again.");
+                return;
+            }
 
-        const result = await dispatch(resendOtp(email));
-        if (resendOtp.fulfilled.match(result)) {
-            toast.success(result.payload.message || "OTP resent successfully!");
-        } else {
-            toast.error(result.payload || "Failed to resend OTP.");
+            const result = await dispatch(resendOtp({ email }));
+            if (resendOtp.fulfilled.match(result)) {
+                toast.success(result.payload.message || "OTP resent successfully!");
+            } else {
+                toast.error(result.payload || "Failed to resend OTP.");
+            }
+        } catch (error) {
+            toast.error("An unexpected error occurred. Please try again.");
         }
     };
 

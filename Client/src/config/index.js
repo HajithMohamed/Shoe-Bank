@@ -38,3 +38,33 @@ export const loginFormControl = [
   },
 ];
 
+export const forgetPasswordFormControll = [
+  {
+    name: "email",
+    label: "Email",
+    placeholder: "Enter your Email",
+    componentType: "input",
+    type: "email",
+    required: true,
+  },
+];
+
+export const resetPasswordFormControl = [
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+  },
+  {
+    name: "password",
+    label: "New Password",
+    type: "password",
+  },
+  {
+    name: "confirmPassword",
+    label: "Confirm New Password",
+    type: "password",
+  },
+]
+
+

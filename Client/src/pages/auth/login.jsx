@@ -1,5 +1,5 @@
 import CommonForm from "@/components/common/form";
-import { loginFormControl} from "@/config";
+import { loginFormControl } from "@/config";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ function AuthLogin() {
           Sign in to your account
         </h1>
         <p className="mt-2">
-          Don't have an account
+          Don't have an account?
           <Link to="/auth/register" className="font-medium ml-2 text-primary hover:underline">
             Register
           </Link>
@@ -37,7 +37,11 @@ function AuthLogin() {
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
+        isLoginForm={true} 
       />
+      <div className="text-center mt-4">
+        
+      </div>
     </div>
   );
 }
