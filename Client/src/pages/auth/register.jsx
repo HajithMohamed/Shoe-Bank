@@ -3,14 +3,14 @@ import { useToast } from "@/components/ui/toast";
 import { registerFormControls } from "@/config";
 import { registerUser } from "@/store/auth-slice";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 const initialState = {
   userName: "",
   email: "",
   password: "",
-  confirmPassword : "",
+  confirmPassword: "",
 };
 
 function AuthRegister() {
@@ -19,25 +19,30 @@ function AuthRegister() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+
+  const isLoading = useSelector((state) => state.auth.isLoading);
+
   function onSubmit(event) {
     event.preventDefault();
     dispatch(registerUser(formData)).then((data) => {
-        console.log("Register Response:", data);
+      console.log("Register Response:", data);
 
-        if (data?.payload?.success) {  
-            toast({ title: data?.payload?.message, variant: "success" }); 
-            navigate("/auth/verify");  
+      if (data.type === "auth/register/fulfilled") {
+        toast({ title: data?.payload?.message, variant: "success" });
+        navigate("/auth/verify");
+      } else {
+        if (data?.payload?.includes("E11000 duplicate key error")) {
+          toast({ 
+            title: "Username already exists. Please choose a different username.", 
+            variant: "destructive" 
+          });
         } else {
-            if (data?.payload?.includes("E11000 duplicate key error")) {
-                toast({ title: "Username already exists. Please choose a different username.", variant: "destructive" });
-            } else {
-                toast({ title: data?.payload?.message, variant: "destructive" });
-            }
+          toast({ title: data?.payload || "Registration failed", variant: "destructive" });
         }
+      }
     });
-}
-
-  console.log(formData);
+    
+  }
 
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
@@ -46,7 +51,7 @@ function AuthRegister() {
           Create new account
         </h1>
         <p className="mt-2">
-          Already have an account
+          Already have an account?
           <Link
             className="font-medium ml-2 text-primary hover:underline"
             to="/auth/login"
@@ -57,10 +62,11 @@ function AuthRegister() {
       </div>
       <CommonForm
         formControls={registerFormControls}
-        buttonText={"Sign Up"}
+        buttonText={isLoading ? "Signing Up..." : "Sign Up"}  // ✅ Dynamic button text
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
+        isLoading={isLoading}  // ✅ Optional: Pass isLoading if CommonForm handles spinner
       />
     </div>
   );

@@ -37,9 +37,9 @@ const createSendToken = (user, statusCode, res, message) => {
     });
 };
 
-const registerUser = catchAsync(async (req, res, next) => {
+const registerUser  = catchAsync(async (req, res, next) => {
     const { userName, email, password, confirmPassword } = req.body;
-    
+
     if (!userName) {
         return next(new AppError("Username is required", 400));
     }
@@ -48,46 +48,66 @@ const registerUser = catchAsync(async (req, res, next) => {
         return next(new AppError("Passwords do not match", 400));
     }
 
-    const checkExistingUser = await User.findOne({ $or: [{ userName }, { email }] });
+    const checkExistingUser  = await User.findOne({ $or: [{ userName }, { email }] });
 
-    if (checkExistingUser) return next(new AppError("User already exists", 400));
+    if (checkExistingUser ) {
+        return next(new AppError("User  already exists", 400));
+    }
 
     const otp = generateOtp();
-    const otpExpires = Date.now() + 24 * 60 * 60 * 1000; 
+    const otpExpires = Date.now() + 24 * 60 * 60 * 1000; // OTP valid for 24 hours
 
-    const newlyCreatedUser = new User({
-        userName: req.body.userName,
-        email: req.body.email,
-        password: req.body.password,
+    const newUser  = new User({
+        userName,
+        email,
+        password, 
         otp,
         otpExpires
     });
 
-    console.log("User to be saved:", newlyCreatedUser ); // Debugging line
-    await newlyCreatedUser.save();
-
     try {
+     
+        const newlyCreatedUser  = await newUser .save();
+
+      
         await sendEmail({
             email: newlyCreatedUser.email,
-            subject: "OTP For Email Verification",
-            html: `<h1>Your OTP is: ${otp}</h1>`
+            subject: "Email Verification - Your OTP Code",
+            html: `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h2>Hello ${newlyCreatedUser.userName || 'User'},</h2>
+                    <p>Thank you for registering with us!</p>
+                    <p><strong>Your One-Time Password (OTP) for email verification is:</strong></p>
+                    <h1 style="color: #007BFF;">${otp}</h1>
+                    <p>Please enter this code in the app to complete your verification.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                    <br />
+                    <p>Best regards,<br/>The Team</p>
+                </div>
+            `
         });
+        
 
-        res.status(200).json({
+        res.status(201).json({
             status: "success",
-            message: "User registered successfully. Please verify your email.",
+            message: "User  registered successfully. Please verify your email.",
             data: {
-                userId: newlyCreatedUser._id
+                userId: newlyCreatedUser ._id
             }
         });
     } catch (error) {
-        await User.findByIdAndDelete(newlyCreatedUser._id);
-        return next(new AppError("Error sending email, try again", 500));
+        if (error.name === 'MongoError' && error.code === 11000) {
+            return next(new AppError("User  already exists", 400));
+        }
+        return next(new AppError("Error saving user, try again", 500));
     }
 });
 
+
 const otpVerify = catchAsync(async (req, res, next) => {
-    const { userId, otp } = req.body;
+    const { userId, otp} = req.body;
+
+  
 
     if (!userId || !otp) {
         return next(new AppError("User ID and OTP are required", 400));
@@ -108,6 +128,21 @@ const otpVerify = catchAsync(async (req, res, next) => {
     user.otpExpires = undefined;
 
     await user.save({ validateBeforeSave: false });
+
+    await sendEmail({
+        email: user.email,
+        subject: "Welcome to Shoe Bank 👟✨",
+        html: `
+          <h1>Welcome to Shoe Bank!</h1>
+          <p>Hi ${user.userName},</p>
+          <p>Thank you for joining <strong>Shoe Bank</strong>, your one-stop shop for the latest footwear trends.</p>
+          <p>We’re excited to have you onboard. Explore our exclusive collections and step up your style!</p>
+          <br/>
+          <p>Happy Shopping!<br/>The Shoe Bank Team</p>
+        `
+      });
+      
+
 
     createSendToken(user, 200, res, "Email has been verified.");
 });
@@ -138,9 +173,27 @@ const resendOTP = catchAsync(async (req, res, next) => {
     try {
         await sendEmail({
             email: user.email,
-            subject: "Resend OTP for email verification",
-            html: `<h1>Your new OTP is: ${newOTP}</h1>`
+            subject: "Resend OTP - Verify Your Email for Shoe Bank",
+            html: `
+                <h1>Email Verification - New OTP</h1>
+                <p>Hi ${user.userName},</p>
+        
+                <p>We received a request to resend your OTP for verifying your email address at <strong>Shoe Bank 👟✨</strong>.</p>
+        
+                <p>Your new OTP is:</p>
+        
+                <h2 style="color: #2e6da4;">${newOTP}</h2>
+        
+                <p><strong>Note:</strong> This OTP is valid for the next 24 hours. Please do not share it with anyone.</p>
+        
+                <p>If you didn’t request this OTP, you can safely ignore this email.</p>
+        
+                <br/>
+                <p>Best regards,</p>
+                <p><strong>The Shoe Bank Team</strong></p>
+            `
         });
+        
 
         res.status(200).json({
             status: "success",

@@ -10,20 +10,15 @@ const initialState = {
   error: null,
 };
 
-// **Register User Async Thunk**
+// ✅ Register User
 export const registerUser = createAsyncThunk(
   "auth/register",
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/auth/register",
-        formData,
-        { withCredentials: true }
-      );
-
-      const userId = response.data.data.userId; // Extract userId
-      localStorage.setItem("userId", userId);  // Store userId for OTP verification
-
+      const response = await axios.post("http://localhost:8000/api/auth/register", formData, { withCredentials: true });
+      const userId = response.data.data.userId;
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("email", formData.email);
       toast.success("Registration successful!");
       return response.data;
     } catch (error) {
@@ -33,28 +28,35 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-
-// **OTP Verification Async Thunk**
+// ✅ Verify OTP
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async ({ userId, otp }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/auth/otp-verify",
-        { userId, otp }, 
-        { withCredentials: true }
-      );
-      toast.success("Verification successful!");
+      const response = await axios.post("http://localhost:8000/api/auth/otp-verify", { userId, otp }, { withCredentials: true });
+      toast.success("OTP verification successful!");
       return response.data.data.user;
     } catch (error) {
-      toast.error(error.response?.data?.message || "Verification failed.");
-      return rejectWithValue(error.response?.data?.message || "Verification failed.");
+      toast.error(error.response?.data?.message || "Verification failed");
+      return rejectWithValue(error.response?.data?.message || "Verification failed");
     }
   }
 );
 
+// ✅ Resend OTP
+export const resendOtp = createAsyncThunk(
+  "auth/resendOtp",
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("http://localhost:8000/api/auth/resend-otp", { email }, { withCredentials: true });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to resend OTP");
+    }
+  }
+);
 
-// **Auth Slice**
+// ✅ Auth Slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -62,6 +64,8 @@ const authSlice = createSlice({
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = null;
+      localStorage.removeItem("userId");
+      localStorage.removeItem("email");
     },
     clearError: (state) => {
       state.error = null;
@@ -69,11 +73,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // **Handle Register**
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(registerUser.pending, (state) => { state.isLoading = true; })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
@@ -81,16 +81,9 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
         state.error = action.payload;
       })
-
-      // **Handle OTP Verification**
-      .addCase(verifyOtp.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(verifyOtp.pending, (state) => { state.isLoading = true; })
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
@@ -99,10 +92,19 @@ const authSlice = createSlice({
       .addCase(verifyOtp.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      .addCase(resendOtp.pending, (state) => { state.isLoading = true; })
+      .addCase(resendOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+        toast.success(action.payload.message || "OTP resent successfully!");
+      })
+      .addCase(resendOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        toast.error(action.payload || "Failed to resend OTP");
       });
   },
 });
 
-// **Export Actions & Reducer**
 export const { logout, clearError } = authSlice.actions;
 export default authSlice.reducer;

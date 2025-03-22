@@ -35,7 +35,7 @@ function App() {
         <Route path="/auth" element={<AuthLayout />}>
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
-          <Route path="verify" element={<OTPverify/>} />
+          <Route path="verify" element={<OTPverify/>} /> 
         </Route>
         <Route path="/admin" element={
           <CheckAuth user={user} isAuthenticated={isAuthenticated}>
