@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useDispatch } from 'react-redux';
-import { resetPasswordVerify } from '@/store/auth-slice'; // Corrected import path
+import { resetPasswordVerify, forgotPassword } from '@/store/auth-slice'; // ✅ added forgotPassword import
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,7 +12,6 @@ const ResetPasswordVerify = ({ otpLength = 4 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Get userId stored during forgot-password step
   const userId = localStorage.getItem('userId');
 
   const handleChange = (index, e) => {
@@ -33,7 +32,6 @@ const ResetPasswordVerify = ({ otpLength = 4 }) => {
     }
   };
 
-  // ✅ Submitting OTP for verification
   const handleSubmit = async () => {
     try {
       const enteredOtp = otp.join('');
@@ -41,24 +39,21 @@ const ResetPasswordVerify = ({ otpLength = 4 }) => {
         toast.error("Please enter the full OTP");
         return;
       }
-
-      const resultAction = await dispatch(
-        resetPasswordVerify({ userId, otp: enteredOtp })
-      );
-
-      if (resetPasswordVerify.fulfilled.match(resultAction)) {
-        navigate('/auth/reset-password');
-        toast.success("OTP Verified Successfully");
-      } else {
-        toast.error(resultAction.payload || "OTP Verification failed");
-      }
+  
+      await dispatch(resetPasswordVerify({ userId, otp: enteredOtp })).unwrap();
+  
+      toast.success("OTP Verified Successfully");
+      navigate('/auth/reset-password');
+  
     } catch (err) {
       console.error("Error during OTP verification:", err);
-      toast.error("An unexpected error occurred");
+      toast.error(typeof err === 'string' ? err : (err?.message || "OTP Verification failed"));
     }
   };
+  
+  
+  
 
-  // ✅ Resending OTP
   const handleResend = async () => {
     setIsResending(true);
     const email = localStorage.getItem('email'); // Assuming email is stored in localStorage

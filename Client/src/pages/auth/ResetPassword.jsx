@@ -1,61 +1,31 @@
-import CommonForm from '@/components/common/form';
-import { resetPasswordFormControl } from '@/config';
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { resetPassword } from '@/store/auth-slice';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-
-
-const initialState = {
-  email: "",
-  password: '',
-  confirmPassword: '',
-};
+import CommonForm from '@/components/common/form';
+import { resetPasswordFormControl } from '@/config';
 
 const ResetPassword = () => {
-  const [formData, setFormData] = useState(initialState);
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: '', confirmPassword: '' });
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const onSubmit = async () => {
     const { email, password, confirmPassword } = formData;
-
-    console.log(formData);
-    
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    try {
-      const resultAction = await dispatch(
-        resetPassword({ email, password, confirmPassword }) 
-        
-      );
-      console.log(email)
-
-      if (resetPassword.fulfilled.match(resultAction)) {
-        toast.success("Password reset successfully!");
-        localStorage.removeItem('userId'); // Optional: Clean up localStorage
-        navigate("/login");
-      } else {
-        toast.error(resultAction.payload?.message || "Failed to reset password");
-      }
-    } catch (err) {
-      toast.error("Failed to reset password");
+    if (password !== confirmPassword) return;
+    const result = await dispatch(resetPassword({ email, password, confirmPassword }));
+    if (resetPassword.fulfilled.match(result)) {
+      localStorage.removeItem('userId');
+      navigate("/login");
     }
   };
 
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Reset Your Password</h1>
-      </div>
+      <h1 className="text-2xl font-bold text-center">Reset Your Password</h1>
       <CommonForm
         formControls={resetPasswordFormControl}
-        buttonText={"Reset Password"}
+        buttonText="Reset Password"
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}

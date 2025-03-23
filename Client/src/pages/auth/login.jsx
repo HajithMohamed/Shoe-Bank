@@ -2,6 +2,9 @@ import CommonForm from "@/components/common/form";
 import { loginFormControl } from "@/config";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { loginUser } from '@/store/auth-slice'; // Update the path according to your project
+import { toast } from "react-toastify";
 
 const initialState = {
   email: "",
@@ -11,11 +14,22 @@ const initialState = {
 function AuthLogin() {
   const [formData, setFormData] = useState(initialState);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  function onSubmit() {
-    // Add your form submission logic here
-    // On successful login, navigate to the desired page
-    navigate("/dashboard");
+  async function onSubmit(e) {
+    e.preventDefault();
+    try {
+      const resultAction = await dispatch(loginUser(formData));
+
+      if (loginUser.fulfilled.match(resultAction)) {
+        navigate("/dashboard");
+      } else if (loginUser.rejected.match(resultAction)) {
+        toast.error(resultAction.payload || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error("Login error:", error);
+    }
   }
 
   return (
@@ -31,17 +45,15 @@ function AuthLogin() {
           </Link>
         </p>
       </div>
+
       <CommonForm
         formControls={loginFormControl}
-        buttonText={"Sign In"} 
+        buttonText={"Sign In"}
         formData={formData}
         setFormData={setFormData}
         onSubmit={onSubmit}
-        isLoginForm={true} 
+        isLoginForm={true}
       />
-      <div className="text-center mt-4">
-        
-      </div>
     </div>
   );
 }

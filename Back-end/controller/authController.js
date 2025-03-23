@@ -284,36 +284,40 @@ const forgetPassword = catchAsync(async (req, res, next) => {
 
 const resetPasswordVerify = catchAsync(async (req, res, next) => {
     const { userId, otp } = req.body;
-
+  
     if (!userId || !otp) {
-        return next(new AppError("User ID and OTP are required", 400));
+      return next(new AppError("User ID and OTP are required", 400));
     }
-
+  
     const user = await User.findById(userId);
-
+  
     if (!user || user.resetPasswordOtp !== otp.toString()) {
-        return next(new AppError("Invalid OTP", 400));
+      return next(new AppError("Invalid OTP", 400));
     }
-
+  
     if (Date.now() > new Date(user.resetPasswordOtpExpires).getTime()) {
-        return next(new AppError("OTP has expired, please request a new OTP", 400));
+      return next(new AppError("OTP has expired, please request a new OTP", 400));
     }
-
+  
     // OTP verified successfully, mark the user as verified for password reset
     user.resetPasswordOtp = undefined;
     user.resetPasswordOtpExpires = undefined;
     user.resetPasswordOtpVerify = true; 
     await user.save({ validateBeforeSave: false });
-
+  
     res.status(200).json({
-        status: "success",
-        message: "OTP verified successfully. You can now reset your password.",
+      success: true,   // ✅ Required for frontend check
+      status: "success",
+      message: "OTP verified successfully. You can now reset your password.",
+      data: { user }   // ✅ Optional, if your frontend expects some data
     });
-});
+  });
+  
 
 const resetPassword = catchAsync(async (req, res, next) => {
     const { email, password, confirmPassword } = req.body;
     console.log(email);
+    console.log(password);
     
 
     if (password !== confirmPassword) {
